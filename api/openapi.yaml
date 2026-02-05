@@ -1,0 +1,128 @@
+openapi: 3.0.1
+info:
+  title: FitMentor API (Generic)
+  version: "1.0.0"
+  description: |
+    Generic OpenAPI spec for a Lambda Proxy Integration API Gateway.
+    Request/response schemas are intentionally generic because the backend uses a single POST per resource
+    and routes actions inside the Lambda code.
+
+servers:
+  - description: API Gateway base (fill in your invoke URL)
+    url: https://{apiId}.execute-api.{region}.amazonaws.com/{stage}
+    variables:
+      apiId:
+        default: YOUR_API_ID
+      region:
+        default: us-east-1
+      stage:
+        default: prod
+
+tags:
+  - name: API
+    description: Authentication & account actions (Cognito-backed)
+  - name: Dashboard
+    description: Training plan generation/retrieval and dashboard actions
+  - name: Progress
+    description: Progress metrics and AI insights
+  - name: TrainingLog
+    description: Training log CRUD and history
+
+paths:
+  /API:
+    post:
+      tags: [API]
+      summary: API entrypoint (Lambda Proxy)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenericRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+
+  /Dashboard:
+    post:
+      tags: [Dashboard]
+      summary: Dashboard entrypoint (Lambda Proxy)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenericRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+
+  /Progress:
+    post:
+      tags: [Progress]
+      summary: Progress entrypoint (Lambda Proxy)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenericRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+
+  /TrainingLog:
+    post:
+      tags: [TrainingLog]
+      summary: TrainingLog entrypoint (Lambda Proxy)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenericRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+
+components:
+  schemas:
+    GenericRequest:
+      type: object
+      additionalProperties: true
+      properties:
+        action:
+          type: string
+        userId:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+
+    GenericResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: true

@@ -1,0 +1,226 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: FitMentor - Serverless stack (API Gateway + Lambda + DynamoDB + Cognito)
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures: [x86_64]
+    Timeout: 30
+    MemorySize: 128
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref FitMentorTableName
+
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+
+  ResetUrlBase:
+    Type: String
+    Default: ""
+
+  FitMentorTableName:
+    Type: String
+    Default: FitMentorData
+
+  GoogleApiKey1:
+    Type: String
+    Default: ""
+    NoEcho: true
+  GoogleApiKey2:
+    Type: String
+    Default: ""
+    NoEcho: true
+  GoogleApiKey3:
+    Type: String
+    Default: ""
+    NoEcho: true
+  LabRoleArn:
+    Type: String
+    Description: Existing IAM Role ARN to use for all Lambdas
+
+
+Resources:
+  # -----------------------------
+  # DynamoDB
+  # -----------------------------
+  FitMentorTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref FitMentorTableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: UserID
+          AttributeType: S
+        - AttributeName: DataType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: UserID
+          KeyType: HASH
+        - AttributeName: DataType
+          KeyType: RANGE
+
+  # -----------------------------
+  # Cognito
+  # -----------------------------
+  FitMentorCognitoCustomMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: FitMentorCognitoCustomMessage
+      CodeUri: ../Lambda/FitMentorCognitoCustomMessage/
+      Handler: index.handler
+      Runtime: nodejs20.x
+      Role: !Ref LabRoleArn
+      Environment:
+        Variables:
+          RESET_URL_BASE: !Ref ResetUrlBase
+
+  FitMentorUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: FitMentorUserPool
+      AutoVerifiedAttributes: [email]
+      UsernameAttributes: [email]
+      LambdaConfig:
+        CustomMessage: !GetAtt FitMentorCognitoCustomMessageFunction.Arn
+      Schema:
+        - Name: email
+          Required: true
+          Mutable: true
+        - Name: name
+          Required: false
+          Mutable: true
+
+  CognitoInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref FitMentorCognitoCustomMessageFunction
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt FitMentorUserPool.Arn
+
+  FitMentorUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref FitMentorUserPool
+      ClientName: FitMentorAppClient
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+
+  # -----------------------------
+  # API Gateway (SAM Api)
+  # -----------------------------
+  FitMentorApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: FitMentorApi
+      StageName: !Ref StageName
+      Cors:
+        AllowMethods: "'OPTIONS,POST'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+
+  # -----------------------------
+  # Lambdas (using existing Roles)
+  # -----------------------------
+  FitMentorLogicFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: FitMentorLogic
+      CodeUri: ../Lambda/FitMentorLogic/
+      Handler: index.handler
+      Role: !Ref LabRoleArn
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref FitMentorUserPool
+          COGNITO_CLIENT_ID: !Ref FitMentorUserPoolClient
+      Events:
+        ApiPost:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FitMentorApi
+            Path: /API
+            Method: POST
+
+  FitMentorDashboardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: FitMentorDashboard
+      CodeUri: ../Lambda/FitMentorDashboard/
+      Handler: index.handler
+      Role: !Ref LabRoleArn
+      Environment:
+        Variables:
+          GOOGLE_API_KEY1: !Ref GoogleApiKey1
+          GOOGLE_API_KEY2: !Ref GoogleApiKey2
+          GOOGLE_API_KEY3: !Ref GoogleApiKey3
+      Events:
+        ApiPost:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FitMentorApi
+            Path: /Dashboard
+            Method: POST
+
+  FitMentorProgressFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: FitMentorProgress
+      CodeUri: ../Lambda/FitMentorProgress/
+      Handler: index.handler
+      Role: !Ref LabRoleArn
+      Events:
+        ApiPost:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FitMentorApi
+            Path: /Progress
+            Method: POST
+
+  FitMentorTrainingLogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: FitMentorTrainingLog
+      CodeUri: ../Lambda/FitMentorTrainingLog/
+      Handler: index.handler
+      Role: !Ref LabRoleArn
+      Events:
+        ApiPost:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FitMentorApi
+            Path: /TrainingLog
+            Method: POST
+
+
+  # --- Cognito Groups ---
+  FitMentorAdminsGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: Admins
+      UserPoolId: !Ref FitMentorUserPool
+      Description: Administrators group
+
+  FitMentorUsersGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: Users
+      UserPoolId: !Ref FitMentorUserPool
+      Description: Regular users group
+
+
+Outputs:
+  ApiInvokeUrl:
+    Description: Base Invoke URL
+    Value: !Sub "https://${FitMentorApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+  UserPoolId:
+    Value: !Ref FitMentorUserPool
+  UserPoolClientId:
+    Value: !Ref FitMentorUserPoolClient
+  DynamoDbTableName:
+    Value: !Ref FitMentorTableName

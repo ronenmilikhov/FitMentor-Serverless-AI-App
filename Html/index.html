@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitMentor - Project</title>
+    <link rel="stylesheet" href="../Css/HomePage.css">
+    <script src="../JS/Functional.js" defer></script>
+</head>
+<body>
+
+    <nav class="main-header">
+        <div class="container nav-container">
+            <a class="logo" href="index.html" aria-label="FitMentor Home">
+                <span class="logo-icon-text">💪</span>
+                <span>Fit<span>Mentor</span></span>
+            </a>
+
+            <div id="userGreeting" class="user-greeting"></div>
+            
+            <div class="nav-links">
+                <button type="button" id="authNavButton" class="btn-nav-register">הרשמה / התחברות</button>
+                <button type="button" id="dashboardNavButton" class="btn-nav-register hidden">לדשבורד</button>
+                <a href="#about">הבעיה והצורך</a>
+                <a href="#features">פיצ'רים</a>
+            </div>
+        </div>
+    </nav>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            
+            <div id="loginView">
+                <h2 class="modal-title">התחברות</h2>
+                <p class="modal-subtitle">ברוכים השבים ל-FitMentor</p>
+                
+                <label for="loginEmail" class="text-right-label">אימייל</label>
+                <input type="email" id="loginEmail" class="modal-input" placeholder="example@email.com" required>
+                
+                <label for="loginPassword" class="text-right-label">סיסמה</label>
+                <input type="password" id="loginPassword" class="modal-input" placeholder="********" required minlength="8">
+                
+                <button class="btn-register-action" onclick="handleLogin()">
+                    התחברות
+                </button>
+                
+                <div class="modal-footer">
+                    <a href="#" onclick="showForgotPasswordView(event)" class="text-cyan link-block">שכחת את הסיסמה?</a>
+                    <div style="margin-top: 10px;">
+                        <span class="text-muted">עדיין לא נרשמת? </span>
+                        <a href="#" onclick="showRegisterView()" class="text-green fw-bold">הירשם כאן</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="forgotPasswordView" class="hidden">
+                <h2 class="modal-title-register">איפוס סיסמה</h2>
+                <p class="modal-subtitle">הזן את האימייל שלך ונשלח לך הודעת איפוס</p>
+
+                <label for="forgotEmail" class="text-right-label">אימייל</label>
+                <input type="email" id="forgotEmail" class="modal-input" placeholder="example@email.com" required>
+
+                <button class="btn-register-action" onclick="handleForgotPassword()">
+                    שלח איפוס סיסמה
+                </button>
+
+                <div class="modal-footer">
+                    <a href="#" onclick="showLoginView(); return false;" class="text-muted link-block" style="font-size: 0.9rem;">חזרה להתחברות</a>
+                </div>
+            </div>
+
+            <div id="resetPasswordView" class="hidden">
+                <h2 class="modal-title-register">איפוס סיסמה</h2>
+                <p class="modal-subtitle">בחר סיסמה חדשה</p>
+
+                <input type="hidden" id="resetUsername">
+                <input type="hidden" id="resetCode">
+
+                <label for="resetNewPassword" class="text-right-label">סיסמה חדשה</label>
+                <input type="password" id="resetNewPassword" class="modal-input" placeholder="לפחות 8 תווים, אות גדולה ומספר" required minlength="8">
+
+                <label for="resetConfirmPassword" class="text-right-label">אימות סיסמה חדשה</label>
+                <input type="password" id="resetConfirmPassword" class="modal-input" placeholder="חזור על הסיסמה" required minlength="8">
+
+                <button class="btn-register-action">
+                    עדכן סיסמה
+                </button>
+
+                <div class="modal-footer">
+                    <a href="#" onclick="showLoginView(); return false;" class="text-muted link-block" style="font-size: 0.9rem;">חזרה להתחברות</a>
+                </div>
+            </div>
+
+            <div id="registerView" class="hidden">
+                <h2 class="modal-title-register">הרשמה חדשה</h2>
+                <p class="modal-subtitle">הכנס פרטים כדי להתחיל להתאמן</p>
+                
+                <label for="regName" class="text-right-label">שם מלא</label>
+                <input type="text" id="regName" class="modal-input" placeholder="שם מלא" value="Browser User">
+                
+                <label for="regEmail" class="text-right-label">אימייל</label>
+                <input type="email" id="regEmail" class="modal-input" placeholder="example@email.com" value="browser_test@gmail.com" required>
+                
+                <label for="regPassword" class="text-right-label">סיסמה</label>
+                <input type="password" id="regPassword" class="modal-input" placeholder="בחר סיסמה" required minlength="8">
+
+                <button onclick="testConnection()" class="btn-register-action">
+                    רישום</button>
+                
+                <div class="modal-footer">
+                    <span class="text-muted">כבר רשום? </span>
+                    <a href="#" onclick="showLoginView()" class="text-cyan fw-bold">התחבר כאן</a>
+                </div>
+            </div>
+
+            <div id="registeringView" class="hidden">
+                <h2 id="registeringTitle" class="modal-title-register">ההרשמה מתחילה...</h2>
+                <p id="registeringSubtitle" class="modal-subtitle"></p>
+                <div class="registering-spinner" aria-hidden="true">
+                    <div id="registerStatusIndicator" class="register-status is-loading"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <header class="hero">
+        <div class="container hero-content">
+            <h1 class="hero-title">
+                <span class="hero-title-main">מאמן הכושר האישי שלך</span>
+                <span class="gradient-text">מונע ע"י בינה מלאכותית</span>
+            </h1>
+            <p class="hero-subtitle">
+                FitMentor מייצר תוכניות אימון מותאמות אישית, עוקב אחר ההתקדמות שלך ועונה על כל שאלה – בדיוק כמו מאמן אנושי, רק חכם יותר וזמין תמיד.
+            </p>
+        </div>
+    </header>
+
+    <section id="about" class="section section-about">
+        <div class="container">
+            <div class="about-grid">
+                <div>
+                    <h2 class="section-title">הבעיה והצורך</h2>
+                    <p class="about-desc">
+                        אנשים רבים מתקשים להתמיד בפעילות גופנית משום שהם <span class="text-highlight">לא יודעים מה לעשות</span>, כמה לבצע, ואיך לבנות תוכנית מותאמת להם.
+                    </p>
+                    <p class="about-desc-lg">
+                        הפתרונות הקיימים בשוק מסורבלים או יקרים מדי (מאמן אישי). ישנו פער עצום בין הרצון להתאמן לבין הידע והכלים הזמינים למתאמן הממוצע.
+                    </p>
+                    
+                    <div class="solution-box">
+                        <h3 class="solution-title">
+                            <span class="icon-yellow" style="font-size: 24px;">💡</span>
+                            הפתרון של FitMentor
+                        </h3>
+                        <p class="solution-desc">
+                            מערכת חכמה שמנגישה אימון איכותי לכל אחד. אלגוריתם AI לומד את המשתמש, בונה לו לו"ז, ומלווה אותו יד ביד לתוצאות – נוח, זול ובריא.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Workout App">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="section section-features">
+        <div class="container">
+            <div class="features-header">
+                <h2 class="section-title features-header-title">Features עיקריים</h2>
+                <p class="features-header-desc">חמשת עמודי התווך של המערכת שיביאו את המשתמש להצלחה</p>
+            </div>
+
+            <div class="features-grid">
+
+        <div class="feature-card">
+            <div class="icon-box">
+                <span class="feature-emoji">📋</span>
+            </div>
+            <h3 class="feature-title">1. תוכנית אימון מותאמת אישית</h3>
+            <p class="feature-desc">יצירת תוכנית לפי מטרה (חיטוב/כוח), זמן פנוי וציוד זמין.</p>
+            <div class="feature-footer">
+                <span class="value-label">הערך למשתמש</span>
+                <p class="feature-footer-text">חוסך ידע מקצועי ומונע בלבול בהתחלה.</p>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="icon-box">
+                <span class="feature-emoji">💬</span>
+            </div>
+            <h3 class="feature-title">2. Chat AI למענה בזמן אמת</h3>
+            <p class="feature-desc">שאלות כמו "מה לעשות במקום דדליפט?" נענות מיד.</p>
+            <div class="feature-footer">
+                <span class="value-label">הערך למשתמש</span>
+                <p class="feature-footer-text">יוצר תחושת ביטחון ומאמן צמוד.</p>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="icon-box">
+                <span class="feature-emoji">✅</span>
+            </div>
+            <h3 class="feature-title">3. יומן מעקב</h3>
+            <p class="feature-desc">תיעוד סטים, חזרות, משקלים וזמני אימון ביומן דיגיטלי.</p>
+            <div class="feature-footer">
+                <span class="value-label">הערך למשתמש</span>
+                <p class="feature-footer-text">משפר התמדה ונותן תחושת הישג מדידה.</p>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="icon-box">
+                <span class="feature-emoji">📊</span>
+            </div>
+            <h3 class="feature-title">4. מעקב התקדמות</h3>
+            <p class="feature-desc">פאנל עם נתונים וגרפים להמחשת ההתקדמות.</p>
+            <div class="feature-footer">
+                <span class="value-label">הערך למשתמש</span>
+                <p class="feature-footer-text">תחושה של התקדמות שהמתאמן לא נתקע במקום.</p>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="icon-box">
+                <span class="feature-emoji">📈</span>
+            </div>
+            <h3 class="feature-title">5. המלצות חכמות לשיפור</h3>
+            <p class="feature-desc">הצעות פרואקטיביות: "תעלה 2.5 קילו במשקל" או "הוסף אירובי".</p>
+            <div class="feature-footer">
+                <span class="value-label">הערך למשתמש</span>
+                <p class="feature-footer-text">התקדמות ליניארית ומניעת 'דריכה במקום'.</p>
+            </div>
+        </div>
+
+</div>
+
+        </div>
+    </section>
+
+    <footer class="main-footer">
+        <div class="footer-logo">
+             <span class="logo-icon-text" style="font-size: 24px; margin-left: 5px;">💪</span>
+             <span>FitMentor Project</span>
+        </div>
+        <p class="copyright">© כל הזכויות שמורות לצוות הפרויקט</p>
+    </footer>
+</body>
+</html>

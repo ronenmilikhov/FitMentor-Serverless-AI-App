@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ממשק ניהול | FitMentor Admin</title>
+    <link rel="stylesheet" href="../Css/dashboard.css">
+    <link rel="stylesheet" href="../Css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../JS/Functional.js" defer></script>
+    <script src="../JS/admin.js" defer></script>
+</head>
+<body>
+    <nav class="admin-header">
+        <div class="container nav-container separate-nodes">
+            <div class="logo-area">
+                <span class="logo badge-admin">
+                    <span class="logo-icon-text">🛡️</span>
+                    <span>Admin<span>Panel</span></span>
+                </span>
+            </div>
+            <div class="user-greeting" id="adminGreeting">שלום, מנהל המערכת!</div>
+            <button class="btn-logout-admin" onclick="requestLogout()">התנתקות</button>
+        </div>
+    </nav>
+
+    <main class="container admin-container">
+        <header class="page-intro">
+            <h1 class="page-title">לוח ניהול מערכת</h1>
+            <p class="text-muted">סקירת משתמשים, סטטיסטיקות ובקרת גישה</p>
+        </header>
+
+        <section class="admin-section stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statUsers">--</span>
+                    <span class="stat-label">משתמשים רשומים</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statActive">--</span>
+                    <span class="stat-label">משתמשים פעילים היום</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏋️</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statWorkouts">--</span>
+                    <span class="stat-label">אימונים שנשמרו</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🧠</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statAi">--</span>
+                    <span class="stat-label">שימוש כולל ב-AI</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-section charts-row">
+            <div class="chart-container">
+                <h3>מגמת הצטרפות (שישה חודשים אחרונים)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="chartJoinTrend"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <h3> שימוש יומי (שבעה ימים אחרונים)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="chartDailyActivity"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-section">
+            <div class="section-head">
+                <h2>ניהול משתמשים</h2>
+                <div class="search-wrap">
+                    <input type="text" id="userSearch" placeholder="חיפוש לפי אימייל או שם..." class="admin-input">
+                </div>
+            </div>
+
+            <div class="table-frame">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>שם משתמש</th>
+                            <th>אימייל</th>
+                            <th>תאריך הצטרפות</th>
+                            <th>סטטוס</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+    <div id="toastContainer"></div>
+</body>
+</html>

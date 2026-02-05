@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>FitMentor | מעקב התקדמות</title>
+
+		<link rel="stylesheet" href="../Css/dashboard.css" />
+		<link rel="stylesheet" href="../Css/progress.css" />
+
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+		<script src="../JS/Functional.js" defer></script>
+		<script src="../JS/progress.js" defer></script>
+	</head>
+
+	<body>
+		<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+		<aside id="modernSidebar" class="modern-sidebar" aria-label="תפריט ניווט">
+			<div class="sidebar-header">
+				<a class="logo sidebar-logo" href="index.html" aria-label="FitMentor Home">
+					<span class="logo-icon-text">💪</span>
+					<span>Fit<span>Mentor</span></span>
+				</a>
+				<button type="button" id="sidebarCloseBtn" class="sidebar-close-btn" aria-label="סגור תפריט">×</button>
+			</div>
+
+			<nav class="sidebar-nav-container" aria-label="ניווט צד">
+				<div class="sidebar-link" onclick="window.location.href='dashboard.html'">
+					<span class="icon">🏋️</span> דשבורד
+				</div>
+				<div class="sidebar-link" onclick="window.location.href='training-log.html'">
+					<span class="icon">📝</span> לוג אימונים
+				</div>
+				<div class="sidebar-link active" onclick="window.location.href='progress.html'">
+					<span class="icon">📈</span> מעקב התקדמות
+				</div>
+			</nav>
+		</aside>
+
+		<nav class="main-header">
+			<div class="container nav-container has-hamburger">
+				<button
+					type="button"
+					id="hamburgerButton"
+					class="hamburger-btn"
+					aria-label="פתח תפריט"
+					aria-controls="modernSidebar"
+					aria-expanded="false"
+					data-tooltip="תפריט ניווט"
+					title="תפריט ניווט"
+				>
+					<span class="hamburger-lines" aria-hidden="true">
+						<span></span>
+						<span></span>
+						<span></span>
+					</span>
+				</button>
+
+				<a class="logo" href="index.html" aria-label="FitMentor Home">
+					<span class="logo-icon-text">💪</span>
+					<span>Fit<span>Mentor</span></span>
+				</a>
+
+				<div id="userGreeting" class="user-greeting"></div>
+
+				<div class="nav-links">
+					<button type="button" onclick="window.location.href='dashboard.html'" class="btn-nav-register">חזרה לדשבורד</button>
+					<button type="button" id="authNavButton" class="btn-nav-register">הרשמה / התחברות</button>
+				</div>
+			</div>
+		</nav>
+
+		<main class="hero progress-hero" style="padding-top: 120px; padding-bottom: 60px; min-height: 100vh;">
+			<div class="container hero-content progress-container">
+				<header class="progress-header">
+					<h1 class="page-title">מעקב התקדמות</h1>
+					<p class="text-muted">הדופק של האימונים שלך, ביצועים, ותובנות חכמות.</p>
+				</header>
+
+				<section class="section-block" aria-label="Consistency">
+					<div class="section-title-row">
+						<h2 class="section-title">🔥 הדופק של האימון</h2>
+						<div class="section-hint text-muted">משקל גוף + רצף אימונים</div>
+					</div>
+
+					<div class="pulse-grid">
+						<div class="card card-heatmap" aria-label="Activity Heatmap">
+							<div class="card-head">
+									<div class="weight-head">
+									<div class="card-title">משקל גוף</div>
+									<div class="card-subtitle text-muted">מגמה של 30 הימים האחרונים</div>
+								</div>
+
+									<div class="weight-stats" aria-label="Bodyweight stats">
+										<div class="weight-pill" id="weightDelta" title="שינוי ב-30 ימים">--</div>
+										<div class="weight-now" id="weightValue" title="משקל נוכחי">--</div>
+									</div>
+							</div>
+
+							<div class="weight-chart">
+									<div class="empty-state" id="weightEmpty" hidden>אין נתונים זמינים להצגה.</div>
+								<canvas id="chartWeight" aria-label="Bodyweight chart"></canvas>
+							</div>
+						</div>
+
+						<div class="stack">
+							<div class="card card-streak calendar-card" aria-label="לוח חודשי">
+								<div class="cal-header">
+									<button type="button" class="cal-nav" id="calPrev" aria-label="חודש קודם" title="חודש קודם">‹</button>
+									<div class="cal-title" id="calTitle">--</div>
+									<button type="button" class="cal-nav" id="calNext" aria-label="חודש הבא" title="חודש הבא">›</button>
+								</div>
+
+								<div class="cal-weekdays" aria-hidden="true">
+									<div>א</div><div>ב</div><div>ג</div><div>ד</div><div>ה</div><div>ו</div><div>ש</div>
+								</div>
+
+								<div class="cal-grid" id="calGrid" aria-label="ימי החודש"></div>
+							</div>
+
+							<div class="card card-kudos" aria-label="קלוריות ביום נבחר">
+								<div class="kudos-title">קלוריות משוערות שנשרפו ביום הנבחר</div>
+								<div class="kudos-value"><span id="dayCaloriesValue">--</span> קלוריות</div>
+								<div class="kudos-text" id="dayCaloriesMeta">לחץ על יום בלוח כדי לראות קלוריות</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section class="section-block" aria-label="Performance Metrics">
+					<div class="section-title-row">
+						<h2 class="section-title">📊 ביצועים</h2>
+						<div class="section-hint text-muted">כוח מירבי ונפח עבודה</div>
+					</div>
+
+					<div class="charts-grid">
+						<div class="card chart-card chart-card--1rm">
+							<div class="card-head">
+								<div>
+									<div class="card-title">Estimated 1RM</div>
+									<div id="chart1rmSubtitle" class="card-subtitle text-muted">בחר תרגיל מהלוג אימונים</div>
+								</div>
+								<div class="chart-controls" aria-label="סינון גרף 1RM">
+									<label class="chart-select-wrap">
+										<span class="sr-only">בחר תרגיל</span>
+										<select id="chart1rmExerciseSelect" class="chart-select" aria-label="בחר תרגיל לגרף 1RM"></select>
+									</label>
+									<label class="chart-select-wrap">
+										<span class="sr-only">בחר יום</span>
+										<select id="chart1rmDaySelect" class="chart-select" aria-label="בחר יום להצגת Estimated 1RM לפי תרגילים"></select>
+									</label>
+								</div>
+							</div>
+							<div class="chart-box">
+								<div class="empty-state" id="chart1rmEmpty" hidden>אין נתונים זמינים להצגה.</div>
+								<canvas id="chart1rm" aria-label="1RM chart"></canvas>
+							</div>
+						</div>
+
+						<div class="card chart-card">
+							<div class="card-head">
+								<div class="card-title">Total Volume Load</div>
+								<div class="card-subtitle text-muted">חזרות × משקל לכל אימון</div>
+							</div>
+							<div class="chart-box chart-box--volume">
+								<div class="empty-state" id="chartVolumeEmpty" hidden>אין נתונים זמינים להצגה.</div>
+								<canvas id="chartVolume" aria-label="Volume chart"></canvas>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section class="section-block" aria-label="PR Showcase">
+					<div class="section-title-row">
+						<h2 class="section-title">🏆 היכל התהילה</h2>
+						<div class="section-hint text-muted">שיאים שנשברו לאחרונה</div>
+					</div>
+
+					<div class="pr-grid" id="prGrid" aria-label="PR cards"></div>
+				</section>
+
+				<section class="section-block" aria-label="Smart Insights">
+					<div class="section-title-row">
+						<h2 class="section-title">🧠 נתונים נוספים</h2>
+						<div class="section-hint text-muted">איזון גוף + המלצות חכמות</div>
+					</div>
+
+					<div class="insights-grid">
+						<div class="card muscle-card">
+							<div class="card-head">
+								<div class="card-title">איזון גוף</div>
+								<div class="card-subtitle text-muted">חלוקת מאמץ לפי קבוצות שרירים</div>
+							</div>
+
+							<div class="balance-wrap" aria-label="Body balance radar">
+								<div class="balance-box">
+									<canvas id="chartBalance" aria-label="Body balance chart"></canvas>
+								</div>
+							</div>
+						</div>
+
+						<div class="card rec-card">
+							<div class="card-head">
+								<div class="card-title">המלצות חכמות</div>
+								<div class="card-subtitle text-muted">המלצות מהמאמן האישי</div>
+							</div>
+
+							<div class="rec-list" id="recList" aria-label="Recommendations"></div>
+						</div>
+					</div>
+				</section>
+			</div>
+		</main>
+	</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitMentor | Dashboard אישי</title>
+  <link rel="stylesheet" href="../Css/dashboard.css" />
+  <script src="../JS/Functional.js" defer></script>
+  <script src="../JS/dashboardFunctional.js" defer></script>
+</head>
+<body>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <aside id="modernSidebar" class="modern-sidebar" aria-label="תפריט ניווט">
+    <div class="sidebar-header">
+      <a class="logo sidebar-logo" href="index.html" aria-label="FitMentor Home">
+        <span class="logo-icon-text">💪</span>
+        <span>Fit<span>Mentor</span></span>
+      </a>
+      <button type="button" id="sidebarCloseBtn" class="sidebar-close-btn" aria-label="סגור תפריט">×</button>
+    </div>
+
+    <nav class="sidebar-nav-container" aria-label="ניווט צד">
+      <div class="sidebar-link active" data-page="dashboard.html"><span class="icon">🏋️</span> דשבורד</div>
+      <div class="sidebar-link" data-page="training-log.html"><span class="icon">📝</span> לוג אימונים</div>
+      <div class="sidebar-link" data-page="progress.html"><span class="icon">📈</span> מעקב התקדמות</div>
+    </nav>
+  </aside>
+
+  <nav class="main-header">
+    <div class="container nav-container has-hamburger">
+      <button type="button" id="hamburgerButton" class="hamburger-btn" aria-label="פתח תפריט" aria-controls="modernSidebar" aria-expanded="false" data-tooltip="תפריט ניווט" title="תפריט ניווט">
+        <span class="hamburger-lines" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
+
+      <a class="logo" href="index.html" aria-label="FitMentor Home">
+        <span class="logo-icon-text">💪</span>
+        <span>Fit<span>Mentor</span></span>
+      </a>
+
+      <div id="userGreeting" class="user-greeting"></div>
+
+      <div class="nav-links">
+        <button type="button" id="homeNavButton" class="btn-nav-register">דף הבית</button>
+        <button type="button" id="authNavButton" class="btn-nav-register">הרשמה / התחברות</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="hero" style="padding-top:120px; padding-bottom:60px; min-height: 100vh;">
+    <div class="container hero-content" style="width: 100%; max-width: 1000px;">
+      <h1 class="hero-title" style="margin-bottom: 10px;">
+        <span class="hero-title-main">Dashboard</span>
+        <span class="gradient-text">תוכנית האימונים והמאמן האישי</span>
+      </h1>
+      <p class="hero-subtitle" style="opacity: 1; animation: none; margin-bottom: 35px;">
+        כאן תוכל לראות את תוכנית האימונים הנוכחית שלך ולשוחח עם המאמן האישי 24/7!
+      </p>
+
+      <div id="dashboardLoader" class="dashboard-card" style="text-align:center; display:none;">
+        <div class="register-status is-loading" style="margin: 0 auto; width: 50px; height: 50px; border-width: 4px;"></div>
+        <h3 id="dashboardLoaderTitle" style="margin-top: 18px; color: var(--accent-cyan);">טוען נתונים...</h3>
+        <p id="dashboardLoaderSubtitle" style="color: var(--text-muted);">בודק אם קיימת תוכנית אימונים עבורך.</p>
+      </div>
+
+      <div id="noPlanState" class="dashboard-card" style="display:none; text-align:center;">
+        <h2 style="color: white; margin-bottom: 10px;">אין לך עדיין תוכנית אימונים</h2>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">
+          נראה שלא נמצאה תוכנית עבורך במערכת. בוא נבנה אחת עכשיו.
+        </p>
+        <button id="startPlanButton" class="btn-cta" style="opacity:1; animation:none;">התחל בבניית תוכנית אימונים</button>
+      </div>
+
+      <div id="planBuilderState" class="dashboard-card" style="display:none;">
+        <h2 style="margin-bottom: 10px; color: white;">בניית תוכנית אימונים</h2>
+        <p style="margin-bottom: 25px; color: var(--text-muted); font-size: 0.95rem;">מלא פרטים כדי שה-AI יבנה תוכנית מותאמת.</p>
+
+        <div class="form-row" style="display:flex; gap:15px; flex-wrap: wrap;">
+          <div class="form-group" style="flex:1; min-width:120px;">
+            <label class="form-label">גיל</label>
+            <input type="number" id="dAge" class="form-input" placeholder="לדוגמה: 25" min="12" max="100">
+          </div>
+          <div class="form-group" style="flex:1; min-width:120px;">
+            <label class="form-label">מגדר</label>
+            <select id="dGender" class="form-select">
+              <option value="male">זכר</option>
+              <option value="female">נקבה</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="display:flex; gap:15px; flex-wrap: wrap;">
+          <div class="form-group" style="flex:1; min-width:120px;">
+             <label class="form-label">משקל (ק"ג)</label>
+             <input type="number" id="dWeight" class="form-input" placeholder="70" min="30" max="250">
+          </div>
+          <div class="form-group" style="flex:1; min-width:120px;">
+             <label class="form-label">גובה (ס"מ)</label>
+             <input type="number" id="dHeight" class="form-input" placeholder="175" min="100" max="250">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">רמת כושר נוכחית</label>
+          <select id="dFitnessLevel" class="form-select">
+             <option value="beginner">מתחיל (0-6 חודשים)</option>
+             <option value="intermediate">מתקדם (6 חודשים - שנתיים)</option>
+             <option value="advanced">מקצועי (מעל שנתיים)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">מה המטרה העיקרית?</label>
+          <select id="dGoal" class="form-select">
+            <option value="חיטוב וירידה במשקל">🔥 חיטוב וירידה במשקל</option>
+            <option value="עלייה במסת שריר">💪 עלייה במסת שריר (היפרטרופיה)</option>
+            <option value="שיפור כושר כללי">🏃 שיפור כושר כללי וסיבולת</option>
+            <option value="אימוני כוח">🏋️ אימוני כוח מירבי (Powerlifting)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">כמה ימים בשבוע אתה פנוי?</label>
+          <select id="dDays" class="form-select">
+            <option value="2">פעמיים בשבוע (מינימום)</option>
+            <option value="3">3 פעמים בשבוע (מומלץ למתחילים)</option>
+            <option value="4">4 פעמים בשבוע (מתקדם)</option>
+            <option value="5">5 פעמים בשבוע (אינטנסיבי)</option>
+            <option value="6">6 פעמים בשבוע (מקצועי)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">איזה ציוד זמין לך?</label>
+          <select id="dEquipment" class="form-select">
+            <option value="gym">🏢 מנוי לחדר כושר מלא</option>
+            <option value="home_dumbbells">🏠 בית - משקולות יד בלבד</option>
+            <option value="bodyweight">🌳 משקל גוף בלבד (פארק/בית)</option>
+          </select>
+        </div>
+
+        <div style="display:flex; gap: 12px; justify-content:center;">
+          <button id="createPlanButton" class="btn-cta" style="opacity:1; animation:none;">צור לי תוכנית</button>
+          <button id="cancelPlanButton" style="background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 12px 22px; border-radius: 50px; cursor: pointer; font-weight: 700;">ביטול</button>
+        </div>
+      </div>
+
+      <div id="planDisplayState" style="display:none;">
+        <div id="printPlanWrapper">
+          <div id="printPlanHeader" class="print-plan-header">
+            <h1 class="print-logo-text">FitMentor</h1>
+            <p class="print-logo-subtitle">תוכנית אימונים אישית</p>
+          </div>
+
+          <div id="planContent" class="dashboard-card">
+            <div class="plan-header-card" style="margin-bottom: 18px;">
+              <div style="display:flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <h2 style="color: white; margin: 0;">תוכנית האימונים שלך</h2>
+                <div style="display:flex; gap: 10px;">
+                  <button id="savePdfButton" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 18px; border-radius: 25px; cursor: pointer; font-weight: bold;">שמור / הדפס תוכנית</button>
+                </div>
+              </div>
+              <p style="margin: 10px 0 0; color: var(--text-muted); font-size: 0.95rem;">
+                טיפ למתאמן: אם תרצה תוכנית חדשה או שינוי בתוכנית — פשוט כתוב למאמן האישי AI למטה.
+              </p>
+            </div>
+
+            <div id="planBody"></div>
+          </div>
+        </div>
+
+        <div class="dashboard-card" style="margin-top: 18px;">
+          <h3 style="color: var(--accent-cyan); margin-bottom: 10px;">שאל אותי כל דבר שתרצה בקשר לאימונים</h3>
+          <div id="chatMessages" class="chat-messages"></div>
+          <div style="display:flex; gap: 10px; margin-top: 12px;">
+            <input id="chatInput" class="form-input" placeholder="לדוגמה: מה להחליף במקום סקוואט?" style="margin:0;" />
+            <button id="chatSendButton" class="btn-cta" style="opacity:1; animation:none; white-space:nowrap; padding: 12px 18px;">שלח</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="newPlanModal" class="fm-modal" aria-hidden="true" style="display:none;">
+    <div class="fm-modal-content" role="dialog" aria-modal="true" aria-label="בקשת תוכנית אימונים חדשה">
+      <button type="button" id="newPlanModalClose" class="fm-modal-close" aria-label="סגור">×</button>
+      <h2 class="fm-modal-title">בקשת תוכנית אימונים חדשה</h2>
+      <p class="fm-modal-subtitle">מלא/עדכן פרטים כדי שה-AI יבנה לך תוכנית חדשה.</p>
+
+      <div class="form-row" style="display:flex; gap:15px; flex-wrap: wrap;">
+        <div class="form-group" style="flex:1; min-width:120px;">
+          <label class="form-label">גיל</label>
+          <input type="number" id="npAge" class="form-input" placeholder="לדוגמה: 25" min="12" max="100">
+        </div>
+        <div class="form-group" style="flex:1; min-width:120px;">
+          <label class="form-label">מגדר</label>
+          <select id="npGender" class="form-select">
+            <option value="male">זכר</option>
+            <option value="female">נקבה</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row" style="display:flex; gap:15px; flex-wrap: wrap;">
+        <div class="form-group" style="flex:1; min-width:120px;">
+          <label class="form-label">משקל (ק"ג)</label>
+          <input type="number" id="npWeight" class="form-input" placeholder="70" min="30" max="250">
+        </div>
+        <div class="form-group" style="flex:1; min-width:120px;">
+          <label class="form-label">גובה (ס"מ)</label>
+          <input type="number" id="npHeight" class="form-input" placeholder="175" min="100" max="250">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">רמת כושר נוכחית</label>
+        <select id="npFitnessLevel" class="form-select">
+          <option value="beginner">מתחיל (0-6 חודשים)</option>
+          <option value="intermediate">מתקדם (6 חודשים - שנתיים)</option>
+          <option value="advanced">מקצועי (מעל שנתיים)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">מה המטרה העיקרית?</label>
+        <select id="npGoal" class="form-select">
+          <option value="חיטוב וירידה במשקל">🔥 חיטוב וירידה במשקל</option>
+          <option value="עלייה במסת שריר">💪 עלייה במסת שריר (היפרטרופיה)</option>
+          <option value="שיפור כושר כללי">🏃 שיפור כושר כללי וסיבולת</option>
+          <option value="אימוני כוח">🏋️ אימוני כוח מירבי (Powerlifting)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">כמה ימים בשבוע אתה פנוי?</label>
+        <select id="npDays" class="form-select">
+          <option value="2">פעמיים בשבוע (מינימום)</option>
+          <option value="3">3 פעמים בשבוע (מומלץ למתחילים)</option>
+          <option value="4">4 פעמים בשבוע (מתקדם)</option>
+          <option value="5">5 פעמים בשבוע (אינטנסיבי)</option>
+          <option value="6">6 פעמים בשבוע (מקצועי)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">איזה ציוד זמין לך?</label>
+        <select id="npEquipment" class="form-select">
+          <option value="gym">🏢 מנוי לחדר כושר מלא</option>
+          <option value="home_dumbbells">🏠 בית - משקולות יד בלבד</option>
+          <option value="bodyweight">🌳 משקל גוף בלבד (פארק/בית)</option>
+        </select>
+      </div>
+
+      <div style="display:flex; gap: 12px; justify-content:center;">
+        <button id="npSubmitButton" class="btn-cta" style="opacity:1; animation:none;">צור לי תוכנית חדשה</button>
+        <button id="npCancelButton" type="button" style="background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 12px 22px; border-radius: 50px; cursor: pointer; font-weight: 700;">ביטול</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

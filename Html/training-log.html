@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FitMentor | יומן אימונים</title>
+    <link rel="stylesheet" href="../Css/dashboard.css" />
+    <link rel="stylesheet" href="../Css/training-log.css" />
+
+    <script src="../JS/Functional.js" defer></script>
+    <script src="../JS/trainingLogFunctional.js" defer></script>
+  </head>
+  <body>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <aside id="modernSidebar" class="modern-sidebar" aria-label="תפריט ניווט">
+      <div class="sidebar-header">
+        <a class="logo sidebar-logo" href="index.html">
+          <span class="logo-icon-text">💪</span>
+          <span>Fit<span>Mentor</span></span>
+        </a>
+        <button type="button" id="sidebarCloseBtn" class="sidebar-close-btn">
+          ×
+        </button>
+      </div>
+
+      <nav class="sidebar-nav-container">
+        <div
+          class="sidebar-link"
+          onclick="window.location.href='dashboard.html'"
+        >
+          <span class="icon">🏋️</span> דשבורד
+        </div>
+        <div
+          class="sidebar-link active"
+          onclick="window.location.href='training-log.html'"
+        >
+          <span class="icon">📝</span> לוג אימונים
+        </div>
+        <div class="sidebar-link" onclick="window.location.href='progress.html'">
+          <span class="icon">📈</span> מעקב התקדמות
+        </div>
+      </nav>
+    </aside>
+
+    <nav class="main-header">
+      <div class="container nav-container has-hamburger">
+        <button
+          type="button"
+          id="hamburgerButton"
+          class="hamburger-btn"
+          aria-label="פתח תפריט"
+          aria-controls="modernSidebar"
+          aria-expanded="false"
+          data-tooltip="תפריט ניווט"
+          title="תפריט ניווט"
+        >
+          <span class="hamburger-lines" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+
+        <a class="logo" href="index.html">
+          <span class="logo-icon-text">💪</span>
+          <span>Fit<span>Mentor</span></span>
+        </a>
+
+        <div id="userGreeting" class="user-greeting"></div>
+
+        <div class="nav-links">
+          <button type="button" id="homeNavButton" class="btn-nav-register">
+            דף הבית
+          </button>
+          <button
+            type="button"
+            onclick="window.location.href='dashboard.html'"
+            class="btn-nav-register"
+          >
+            חזרה לדשבורד
+          </button>
+          <button type="button" id="authNavButton" class="btn-nav-register">
+            הרשמה / התחברות
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main
+      class="hero"
+      style="padding-top: 120px; padding-bottom: 60px; min-height: 100vh"
+    >
+      <div
+        class="container hero-content"
+        style="width: 100%; max-width: 1000px"
+      >
+        <div class="log-header-section">
+          <div class="header-content">
+            <h1 class="page-title">תיעוד אימון חדש</h1>
+            <p class="text-muted">
+              עקוב אחר ההתקדמות שלך כדי שה-AI יוכל לשפר את התוכנית שלך.
+            </p>
+          </div>
+        </div>
+
+        <div class="training-log-container dashboard-card">
+          <div class="date-selector-group">
+            <label class="form-label" for="workoutDate">תאריך האימון:</label>
+            <input type="date" id="workoutDate" class="form-input date-input" required />
+          </div>
+
+          <div id="exercisesList" class="exercises-list">
+          </div>
+
+          <div class="add-exercise-wrapper">
+            <button id="addExerciseBtn" class="btn-add-exercise">
+              <span class="plus-icon">+</span> הוסף תרגיל
+            </button>
+          </div>
+
+          <hr class="divider" />
+
+          <div class="log-footer">
+            <div
+              class="workout-summary-inputs"
+              style="width: 100%; margin-bottom: 20px"
+            >
+				<div class="bodyweight-row">
+					<label class="form-label" for="bodyWeightKg">משקל גוף (ק"ג)</label>
+					<input
+						type="number"
+						id="bodyWeightKg"
+						class="form-input"
+						step="0.1"
+            min="30"
+            max="250"
+            required
+						inputmode="decimal"
+						placeholder='לדוגמה: 81'
+					/>
+				</div>
+
+              <label class="form-label">הערות כלליות</label>
+              <textarea
+                id="workoutNotes"
+                class="form-input"
+                rows="3"
+                style="white-space: pre-wrap"
+					placeholder="כתוב כאן תרשומת כללית על האימון... (אנרגיות, כאבים, תחושה כללית)."
+              ></textarea>
+            </div>
+
+            <div class="summary-stats">
+              <span
+                >סה"כ תרגילים:
+                <strong id="totalExercisesCount" class="text-cyan"
+                  >0</strong
+                ></span
+              >
+              <span
+                >סה"כ סטים:
+                <strong id="totalSetsCount" class="text-green">0</strong></span
+              >
+            </div>
+
+            <div class="action-buttons" style="display: flex; gap: 10px">
+              <button
+                id="deleteWorkoutBtn"
+                class="btn-cta delete-btn"
+                style="background-color: #ef4444; display: none"
+              >
+                מחק אימון
+              </button>
+              <button id="saveWorkoutBtn" class="btn-cta save-btn">
+                שמור אימון ביומן
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <template id="exerciseTemplate">
+      <div class="exercise-card">
+        <div class="exercise-header">
+          <div class="exercise-title-input-wrapper">
+            <span class="exercise-number">#1</span>
+            <input
+              type="text"
+              class="form-input exercise-name-input"
+              placeholder="שם התרגיל (לדוגמה: בנץ' פרס)"
+              list="exercisesSuggestions"
+            />
+          </div>
+          <button class="remove-exercise-btn" title="מחק תרגיל">🗑️</button>
+        </div>
+
+        <div class="sets-container">
+          <div class="sets-header">
+            <span>סט</span>
+            <span>משקל (ק"ג)</span>
+            <span>חזרות</span>
+            <span>מנוחה (שניות)</span>
+            <span>הערות</span>
+            <span></span>
+          </div>
+          <div class="sets-list">
+          </div>
+          <button class="add-set-btn">+ הוסף סט</button>
+        </div>
+      </div>
+    </template>
+
+    <datalist id="exercisesSuggestions">
+      <option value="Squat (סקוואט)"></option>
+      <option value="Bench Press (לחיצת חזה)"></option>
+      <option value="Deadlift (דדליפט)"></option>
+      <option value="Overhead Press (לחיצת כתפיים)"></option>
+      <option value="Pull Up (מתח)"></option>
+      <option value="Dumbbell Row (חתירה)"></option>
+      <option value="Lunges (מכרעים)"></option>
+      <option value="Plank (פלאנק)"></option>
+    </datalist>
+  </body>
+</html>
