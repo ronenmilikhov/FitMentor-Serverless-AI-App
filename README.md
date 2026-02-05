@@ -14,7 +14,7 @@ This project was built to demonstrate a **cloud-native architecture** using **AW
 ## 🛠 Tech Stack
 
 ### Frontend
-*   **HTML5 / CSS3 / JavaScript (Vanilla)**: Lightweight and responsive UI without heavy frameworks.
+*   **HTML / CSS / JavaScript (Vanilla)**: Lightweight and responsive UI without heavy frameworks.
 *   **AWS S3**: Static website hosting for the client-side application.
 
 ### Backend & Cloud Infrastructure (AWS)
