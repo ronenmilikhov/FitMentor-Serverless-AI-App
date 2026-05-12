@@ -1,7 +1,5 @@
 # FitMentor - Serverless Fitness Application
 
-**[View Live Demo](https://fitmentor-website-6.s3.us-east-1.amazonaws.com/FitMentor/Html/index.html)**
-
 ## 📖 Overview
 
 FitMentor is a robust **serverless web application** designed to help users manage their fitness journey. It provides a comprehensive platform for tracking workouts, monitoring progress, and managing personal training goals.
