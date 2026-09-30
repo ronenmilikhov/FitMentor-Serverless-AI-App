@@ -6,7 +6,6 @@ let isChatPending = false;
 let chatLoadingBubbleEl = null;
 
 const byId = (id) => document.getElementById(id);
-const getUserId = () => localStorage.getItem("fitmentorUserId");
 const requireUserId = () => {
     const id = getUserId();
     if (!id) throw new Error("Missing userId");
@@ -499,7 +498,7 @@ async function handleDashboardSendChat() {
             if (planBody) {
                 planBody.style.opacity = "0.5";
                 setTimeout(() => {
-                    const html = renderPlanHtml({ planHtml: data.updatedPlanHtml });
+                    const html = sanitizeAiHtml(renderPlanHtml({ planHtml: data.updatedPlanHtml }));
                     planBody.innerHTML = html;
                     planBody.style.opacity = "1";
                     
@@ -542,7 +541,7 @@ async function initDashboardPage() {
         const planData = await generateAndSavePlanAws(params);
         const html = renderPlanHtml(planData);
         const planBody = getPlanBodyElement();
-        if (planBody) planBody.innerHTML = html || "<p>שגיאה בטעינת התוכנית</p>";
+        if (planBody) planBody.innerHTML = sanitizeAiHtml(html) || "<p>שגיאה בטעינת התוכנית</p>";
         const msgs = byId("chatMessages");
         if (msgs) msgs.innerHTML = "";
         appendChatBubble("ai", successMessage);
@@ -679,7 +678,7 @@ async function initDashboardPage() {
         const planBody = getPlanBodyElement();
         
         if (planBody && html && html.length > 20 && !isPlanErrorHtml(html)) {
-            planBody.innerHTML = html;
+            planBody.innerHTML = sanitizeAiHtml(html);
             const serverParams = planData?.plan?.params;
             if (serverParams && typeof serverParams === "object") setStoredPlanParams(serverParams);
             setDashboardState("display");
@@ -703,60 +702,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isDashboard = window.location.pathname.toLowerCase().includes("dashboard");
     
     if (isDashboard) {
-        const hamburgerButton = document.getElementById("hamburgerButton");
-        const sidebar = document.getElementById("modernSidebar");
-        const overlay = document.getElementById("sidebarOverlay");
-        const closeBtn = document.getElementById("sidebarCloseBtn");
-
-        const openSidebar = () => {
-            if (!sidebar || !overlay || !hamburgerButton) return;
-            sidebar.classList.add("is-open");
-            overlay.classList.add("is-active");
-            hamburgerButton.classList.add("is-active");
-            hamburgerButton.setAttribute("aria-expanded", "true");
-        };
-
-        const closeSidebar = () => {
-            if (!sidebar || !overlay || !hamburgerButton) return;
-            sidebar.classList.remove("is-open");
-            overlay.classList.remove("is-active");
-            hamburgerButton.classList.remove("is-active");
-            hamburgerButton.setAttribute("aria-expanded", "false");
-        };
-
-        if (hamburgerButton) {
-            hamburgerButton.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const isOpen = hamburgerButton.getAttribute("aria-expanded") === "true";
-                if (isOpen) closeSidebar();
-                else openSidebar();
-            });
-        }
-
-        if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
-        if (overlay) overlay.addEventListener("click", closeSidebar);
-
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") closeSidebar();
-        });
-
-        if (sidebar) {
-            sidebar.addEventListener("click", (e) => {
-                const target = e.target;
-                if (!(target instanceof HTMLElement)) return;
-
-                const link = target.closest(".sidebar-link");
-                if (!(link instanceof HTMLElement)) return;
-                const page = link.getAttribute("data-page") || "";
-
-                closeSidebar();
-
-                if (page && typeof navigateToPage === "function") {
-                    navigateToPage(page);
-                }
-            });
-        }
-
+        initSidebarToggle();
         initDashboardPage();
     }
 });

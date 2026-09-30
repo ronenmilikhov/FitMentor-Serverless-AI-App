@@ -9,46 +9,10 @@ let __selectedExercise1rm;
 let __progressDataCache;
 
 document.addEventListener("DOMContentLoaded", () => {
-	wireSidebar();
+	initSidebarToggle();
 	initProgressPage();
 });
 
-function wireSidebar() {
-	const hamburgerButton = document.getElementById("hamburgerButton");
-	const sidebar = document.getElementById("modernSidebar");
-	const closeBtn = document.getElementById("sidebarCloseBtn");
-	const overlay = document.getElementById("sidebarOverlay");
-
-	const openSidebar = () => {
-		if (!sidebar || !overlay || !hamburgerButton) return;
-		sidebar.classList.add("is-open");
-		overlay.classList.add("is-active");
-		hamburgerButton.classList.add("is-active");
-		hamburgerButton.setAttribute("aria-expanded", "true");
-	};
-
-	const closeSidebar = () => {
-		if (!sidebar || !overlay || !hamburgerButton) return;
-		sidebar.classList.remove("is-open");
-		overlay.classList.remove("is-active");
-		hamburgerButton.classList.remove("is-active");
-		hamburgerButton.setAttribute("aria-expanded", "false");
-	};
-
-	if (hamburgerButton) {
-		hamburgerButton.addEventListener("click", (e) => {
-			e.stopPropagation();
-			const isOpen = hamburgerButton.getAttribute("aria-expanded") === "true";
-			if (isOpen) closeSidebar();
-			else openSidebar();
-		});
-	}
-	if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
-	if (overlay) overlay.addEventListener("click", closeSidebar);
-	document.addEventListener("keydown", (e) => {
-		if (e.key === "Escape") closeSidebar();
-	});
-}
 
 async function initProgressPage() {
 	try {
@@ -106,10 +70,6 @@ async function hydrateAiInsights(progressData, { days = 30 } = {}) {
 		if (typeof showToast === "function") showToast(formatApiError(e, "שגיאה בטעינת AI Insights"), { variant: "danger" });
 		renderInsights({ insights: progressData?.insights || {} });
 	}
-}
-
-function getUserId() {
-	return localStorage.getItem("fitmentorUserId") || localStorage.getItem("userId") || "";
 }
 
 function normalizeProgressData(raw) {

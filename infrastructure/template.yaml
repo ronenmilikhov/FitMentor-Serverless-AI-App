@@ -61,6 +61,15 @@ Resources:
           KeyType: HASH
         - AttributeName: DataType
           KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: DataTypeIndex
+          KeySchema:
+            - AttributeName: DataType
+              KeyType: HASH
+            - AttributeName: UserID
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
 
   # -----------------------------
   # Cognito

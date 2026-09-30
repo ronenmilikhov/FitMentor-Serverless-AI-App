@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import {
   CognitoIdentityProviderClient,
   SignUpCommand,
@@ -148,11 +148,12 @@ async function scanUserActivityItems() {
   const items = [];
   let lastKey;
   do {
-    const res = await docClient.send(new ScanCommand({
+    const res = await docClient.send(new QueryCommand({
       TableName: TABLE_NAME,
-      ExclusiveStartKey: lastKey,
-      FilterExpression: "DataType = :dt",
-      ExpressionAttributeValues: { ":dt": USER_ACTIVITY_KEY }
+      IndexName: "DataTypeIndex",
+      KeyConditionExpression: "DataType = :dt",
+      ExpressionAttributeValues: { ":dt": USER_ACTIVITY_KEY },
+      ExclusiveStartKey: lastKey
     }));
     items.push(...(res.Items || []));
     lastKey = res.LastEvaluatedKey;
@@ -394,7 +395,7 @@ async function handleCognitoTrigger(event) {
 export const handler = async (event) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type,Authorization",
     "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
   };
 

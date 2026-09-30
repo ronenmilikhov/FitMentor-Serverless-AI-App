@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    initSidebar();
+    initSidebarToggle();
     initTrainingLog();
 });
 
@@ -229,8 +229,6 @@ function openDeleteLogConfirmModal(date) {
 }
 
 function applyTodayEmptyLogMinimumLock({ date, foundLog } = {}) {
-    const shouldLock = true;
-
     const exercisesList = document.getElementById("exercisesList");
     if (!exercisesList) return;
     const cards = Array.from(exercisesList.querySelectorAll(".exercise-card"));
@@ -244,66 +242,16 @@ function applyTodayEmptyLogMinimumLock({ date, foundLog } = {}) {
         if (tooltip) btn.title = tooltip;
     };
 
-    const unlockBtn = (btn) => {
-        if (!btn) return;
-        if (btn.dataset.fmMinLock !== "1") return;
-        btn.disabled = false;
-        btn.style.visibility = "";
-        delete btn.dataset.fmMinLock;
-    };
+    const firstCard = cards[0];
+    lockBtn(firstCard?.querySelector(".remove-exercise-btn"), "אי אפשר להסיר את התרגיל הראשון");
 
-    if (shouldLock) {
-        const firstCard = cards[0];
-        lockBtn(firstCard?.querySelector(".remove-exercise-btn"), "אי אפשר להסיר את התרגיל הראשון");
-
-        cards.forEach((card) => {
-            const firstSetRow = card.querySelector(".set-row");
-            lockBtn(firstSetRow?.querySelector(".remove-set-btn"), "אי אפשר להסיר את הסט הראשון");
-        });
-    } else {
-        cards.forEach((card, idx) => {
-            if (idx === 0) unlockBtn(card.querySelector(".remove-exercise-btn"));
-            const firstSetRow = card.querySelector(".set-row");
-            unlockBtn(firstSetRow?.querySelector(".remove-set-btn"));
-        });
-    }
-}
-
-function initSidebar() {
-    const hamburgerButton = document.getElementById("hamburgerButton");
-    const sidebar = document.getElementById("modernSidebar");
-    const overlay = document.getElementById("sidebarOverlay");
-    const closeBtn = document.getElementById("sidebarCloseBtn");
-
-    if (!hamburgerButton || !sidebar || !overlay) return;
-
-    function openSidebar() {
-        sidebar.classList.add("is-open");
-        overlay.classList.add("is-active");
-        hamburgerButton.classList.add("is-active");
-        hamburgerButton.setAttribute("aria-expanded", "true");
-    }
-
-    function closeSidebar() {
-        sidebar.classList.remove("is-open");
-        overlay.classList.remove("is-active");
-        hamburgerButton.classList.remove("is-active");
-        hamburgerButton.setAttribute("aria-expanded", "false");
-    }
-
-    hamburgerButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (sidebar.classList.contains("is-open")) closeSidebar();
-        else openSidebar();
-    });
-
-    if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
-    if (overlay) overlay.addEventListener("click", closeSidebar);
-
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeSidebar();
+    cards.forEach((card) => {
+        const firstSetRow = card.querySelector(".set-row");
+        lockBtn(firstSetRow?.querySelector(".remove-set-btn"), "אי אפשר להסיר את הסט הראשון");
     });
 }
+
+
 
 function initTrainingLog() {
     const dateInput = document.getElementById("workoutDate");

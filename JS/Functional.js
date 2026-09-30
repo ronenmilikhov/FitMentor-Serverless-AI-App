@@ -13,6 +13,14 @@ const DASHBOARD_URL = `${API_BASE_URL}/Dashboard`;
 const TRAINING_LOG_URL = `${API_BASE_URL}/TrainingLog`; 
 const PROGRESS_URL = `${API_BASE_URL}/Progress`; 
 
+function getAuthToken() {
+  try { return localStorage.getItem("fitmentorToken") || ""; } catch { return ""; }
+}
+
+function getUserId() {
+  try { return localStorage.getItem("fitmentorUserId") || ""; } catch { return ""; }
+}
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const EMAIL_VALIDATION_MESSAGE = "האימייל צריך להיות בצורה הזאת: example@email.com";
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -62,9 +70,13 @@ async function apiRequest(action, userId, payload = {}) {
 
   console.log(`Sending ${action} request to: ${targetUrl}`);
 
+  const token = getAuthToken();
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   const response = await fetch(targetUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ action, userId, payload }),
   });
 
@@ -279,6 +291,75 @@ function logoutUser() {
   updateNavGreeting();
 }
 
+function sanitizeAiHtml(html) {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const dangerous = doc.querySelectorAll("script, iframe, object, embed, form, link[rel=import]");
+    dangerous.forEach(el => el.remove());
+    const all = doc.querySelectorAll("*");
+    for (const el of all) {
+      for (const attr of Array.from(el.attributes)) {
+        if (attr.name.startsWith("on") || attr.name === "srcdoc" ||
+            (attr.name === "href" && attr.value.trim().toLowerCase().startsWith("javascript:")) ||
+            (attr.name === "src" && attr.value.trim().toLowerCase().startsWith("javascript:"))) {
+          el.removeAttribute(attr.name);
+        }
+      }
+    }
+    return doc.body.innerHTML;
+  } catch {
+    return "";
+  }
+}
+
+function initSidebarToggle() {
+  const hamburgerButton = document.getElementById("hamburgerButton");
+  const sidebar = document.getElementById("modernSidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+  const closeBtn = document.getElementById("sidebarCloseBtn");
+
+  if (!hamburgerButton || !sidebar || !overlay) return;
+
+  const openSidebar = () => {
+    sidebar.classList.add("is-open");
+    overlay.classList.add("is-active");
+    hamburgerButton.classList.add("is-active");
+    hamburgerButton.setAttribute("aria-expanded", "true");
+  };
+
+  const closeSidebar = () => {
+    sidebar.classList.remove("is-open");
+    overlay.classList.remove("is-active");
+    hamburgerButton.classList.remove("is-active");
+    hamburgerButton.setAttribute("aria-expanded", "false");
+  };
+
+  hamburgerButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = hamburgerButton.getAttribute("aria-expanded") === "true";
+    if (isOpen) closeSidebar();
+    else openSidebar();
+  });
+
+  if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
+  if (overlay) overlay.addEventListener("click", closeSidebar);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeSidebar();
+  });
+
+  sidebar.addEventListener("click", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) return;
+    const link = target.closest(".sidebar-link[data-page]");
+    if (!(link instanceof HTMLElement)) return;
+    const page = link.getAttribute("data-page") || "";
+    closeSidebar();
+    if (page && typeof navigateToPage === "function") navigateToPage(page);
+  });
+}
+
 function redirectGuestsToIndex(message = "נדרשת התחברות") {
   try { sessionStorage.setItem("fitmentorLoginReason", message); } catch {}
   const url = new URL(window.location.href);
@@ -457,7 +538,7 @@ async function handleLogin() {
   }
 }
 
-async function testConnection() { 
+async function handleRegister() { 
   const nameInput = document.getElementById("regName").value;
   const emailEl = document.getElementById("regEmail");
   const passwordEl = document.getElementById("regPassword");
@@ -611,47 +692,34 @@ async function handleForgotPassword() {
 
   showRegisteringView("שולח בקשת איפוס...", "");
 
+  // Always show success to avoid leaking whether the email exists
   try {
     await apiRequest("forgotPassword", email, {});
-
-    if (registeringTitle) registeringTitle.textContent = "לינק לאיפוס הסיסמה נשלח";
-    if (registeringSubtitle) registeringSubtitle.textContent = "בדוק את תיבת הדואר שלך (כולל תיקיית SPAM)";
-    if (registerStatusIndicator) {
-      registerStatusIndicator.classList.remove("is-loading", "is-error");
-      registerStatusIndicator.classList.add("is-success");
-    }
-
-    const holdMs = 2200;
-    const fadeMs = 450;
-    setTimeout(() => { if (registeringView) registeringView.classList.add("registering-fade-out"); }, holdMs);
-    setTimeout(() => {
-      showLoginView();
-      if (registeringView) registeringView.classList.remove("registering-fade-out");
-      const loginEmail = document.getElementById("loginEmail");
-      if (loginEmail) loginEmail.value = email;
-      showToast("לינק לאיפוס הסיסמה נשלח בהצלחה", { variant: "success", durationMs: 4000 });
-    }, holdMs + fadeMs);
-  } catch (err) {
-    if (registeringTitle) registeringTitle.textContent = "לינק לאיפוס הסיסמה נשלח";
-    if (registeringSubtitle) registeringSubtitle.textContent = "בדוק את תיבת הדואר שלך (כולל תיקיית SPAM)";
-    if (registerStatusIndicator) {
-      registerStatusIndicator.classList.remove("is-loading", "is-error");
-      registerStatusIndicator.classList.add("is-success");
-    }
-
-    const holdMs = 2200;
-    const fadeMs = 450;
-    setTimeout(() => { if (registeringView) registeringView.classList.add("registering-fade-out"); }, holdMs);
-    setTimeout(() => {
-      showLoginView();
-      if (registeringView) registeringView.classList.remove("registering-fade-out");
-      const loginEmail = document.getElementById("loginEmail");
-      if (loginEmail) loginEmail.value = email;
-      showToast("לינק לאיפוס הסיסמה נשלח בהצלחה", { variant: "success", durationMs: 4000 });
-    }, holdMs + fadeMs);
-  } finally {
-    if (btn) { btn.disabled = false; btn.innerText = originalText; }
+  } catch {
+    // Intentionally swallowed — show same success UX either way
   }
+
+  const showForgotSuccess = () => {
+    if (registeringTitle) registeringTitle.textContent = "לינק לאיפוס הסיסמה נשלח";
+    if (registeringSubtitle) registeringSubtitle.textContent = "בדוק את תיבת הדואר שלך (כולל תיקיית SPAM)";
+    if (registerStatusIndicator) {
+      registerStatusIndicator.classList.remove("is-loading", "is-error");
+      registerStatusIndicator.classList.add("is-success");
+    }
+    const holdMs = 2200;
+    const fadeMs = 450;
+    setTimeout(() => { if (registeringView) registeringView.classList.add("registering-fade-out"); }, holdMs);
+    setTimeout(() => {
+      showLoginView();
+      if (registeringView) registeringView.classList.remove("registering-fade-out");
+      const loginEmail = document.getElementById("loginEmail");
+      if (loginEmail) loginEmail.value = email;
+      showToast("לינק לאיפוס הסיסמה נשלח בהצלחה", { variant: "success", durationMs: 4000 });
+    }, holdMs + fadeMs);
+  };
+
+  showForgotSuccess();
+  if (btn) { btn.disabled = false; btn.innerText = originalText; }
 }
 
 function validateResetPasswordMatch(newPassEl, confirmEl) {
@@ -726,6 +794,9 @@ async function handleConfirmForgotPassword() {
   }
 }
 
+// Backward-compatible alias — HTML onclick references this name
+const testConnection = handleRegister;
+
 setupEmailValidationPopups();
 setupPasswordValidationPopups();
 
@@ -758,6 +829,18 @@ document.addEventListener("DOMContentLoaded", () => {
     homeBtn.addEventListener("click", () => { navigateToPage("index.html"); });
   }
 
+  // Reset password view wiring
+  const resetBtn = document.querySelector("#resetPasswordView .btn-register-action");
+  if (resetBtn) resetBtn.addEventListener("click", handleConfirmForgotPassword);
+
+  const newPassEl = document.getElementById("resetNewPassword");
+  const confirmEl = document.getElementById("resetConfirmPassword");
+  if (newPassEl && confirmEl) {
+    const onInput = () => validateResetPasswordMatch(newPassEl, confirmEl);
+    confirmEl.addEventListener("input", onInput);
+    newPassEl.addEventListener("input", onInput);
+  }
+
   const isIndexPage = /index\.html$/i.test(window.location.pathname) || window.location.pathname.endsWith("/Html/") || window.location.pathname.endsWith("/Html");
   if (isIndexPage) {
     const params = new URLSearchParams(window.location.search);
@@ -771,10 +854,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (usernameEl && qUser) usernameEl.value = qUser;
       if (codeEl && qCode) codeEl.value = qCode;
 
-	  if (!qUser || !qCode) {
-		showToast("הלינק לאיפוס סיסמה לא תקין. נסה לשלוח איפוס מחדש.", { variant: "danger", durationMs: 4500 });
-		showForgotPasswordView();
-	  }
+      if (!qUser || !qCode) {
+        showToast("הלינק לאיפוס סיסמה לא תקין. נסה לשלוח איפוס מחדש.", { variant: "danger", durationMs: 4500 });
+        showForgotPasswordView();
+      }
     } else if (params.get("login") === "1" && !isUserLoggedIn()) {
       let message = "נדרשת התחברות";
       try {
@@ -783,19 +866,6 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch {}
       openLoginModal(message);
     }
-  }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const resetBtn = document.querySelector("#resetPasswordView .btn-register-action");
-  if (resetBtn) resetBtn.addEventListener("click", handleConfirmForgotPassword);
-
-  const newPassEl = document.getElementById("resetNewPassword");
-  const confirmEl = document.getElementById("resetConfirmPassword");
-  if (newPassEl && confirmEl) {
-    const onInput = () => validateResetPasswordMatch(newPassEl, confirmEl);
-    confirmEl.addEventListener("input", onInput);
-    newPassEl.addEventListener("input", onInput);
   }
 });
 

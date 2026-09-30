@@ -5,10 +5,35 @@ const TABLE_NAME = process.env.TABLE_NAME || "FitMentorData";
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
+function parseJwtPayload(token) {
+	try {
+		const base64Url = token.split('.')[1];
+		const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+		const jsonPayload = Buffer.from(base64, 'base64').toString('utf8');
+		return JSON.parse(jsonPayload);
+	} catch {
+		return {};
+	}
+}
+
+function verifyRequestAuth(event, requestUserId) {
+	const authHeader = event.headers?.Authorization || event.headers?.authorization || "";
+	if (!authHeader.startsWith("Bearer ")) return false;
+	try {
+		const token = authHeader.substring(7);
+		const decoded = parseJwtPayload(token);
+		const tokenEmail = String(decoded.email || decoded["cognito:username"] || "").toLowerCase().trim();
+		const requestEmail = String(requestUserId || "").toLowerCase().trim();
+		return tokenEmail === requestEmail;
+	} catch {
+		return false;
+	}
+}
+
 export const handler = async (event) => {
 	const headers = {
 		"Access-Control-Allow-Origin": "*",
-		"Access-Control-Allow-Headers": "Content-Type",
+		"Access-Control-Allow-Headers": "Content-Type,Authorization",
 		"Access-Control-Allow-Methods": "OPTIONS,POST,GET",
 	};
 
@@ -24,6 +49,10 @@ export const handler = async (event) => {
 		const normalizedUserId = String(userId).toLowerCase().trim();
 		if (!normalizedUserId) {
 			return { statusCode: 400, headers, body: JSON.stringify({ message: "Missing userId" }) };
+		}
+
+		if (!verifyRequestAuth(event, normalizedUserId)) {
+			return { statusCode: 401, headers, body: JSON.stringify({ message: "Unauthorized" }) };
 		}
 
 		switch (action) {

@@ -27,6 +27,31 @@ async function incrementMetric(field, by = 1) {
   }));
 }
 
+function parseJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = Buffer.from(base64, 'base64').toString('utf8');
+    return JSON.parse(jsonPayload);
+  } catch {
+    return {};
+  }
+}
+
+function verifyRequestAuth(event, requestUserId) {
+  const authHeader = event.headers?.Authorization || event.headers?.authorization || "";
+  if (!authHeader.startsWith("Bearer ")) return false;
+  try {
+    const token = authHeader.substring(7);
+    const decoded = parseJwtPayload(token);
+    const tokenEmail = String(decoded.email || decoded["cognito:username"] || "").toLowerCase().trim();
+    const requestEmail = String(requestUserId || "").toLowerCase().trim();
+    return tokenEmail === requestEmail;
+  } catch {
+    return false;
+  }
+}
+
 const PLAN_HISTORY_PREFIX = "PlanHistory_";
 const MAX_PLAN_HISTORY_TO_FETCH = 5;
 
@@ -52,7 +77,7 @@ function isLikelyRealPlanHtml(planHtml) {
 export const handler = async (event) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type,Authorization",
     "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
   };
 
@@ -68,6 +93,11 @@ export const handler = async (event) => {
     }
 
     const normalizedUserId = userId.toLowerCase().trim();
+
+    if (!verifyRequestAuth(event, normalizedUserId)) {
+      return { statusCode: 401, headers, body: JSON.stringify({ message: "Unauthorized" }) };
+    }
+
     let result = {};
 
     switch (action) {
